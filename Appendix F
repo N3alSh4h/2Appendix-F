@@ -1,0 +1,33 @@
+#include <Wire.h>
+
+#define EncPinA 3
+#define EncPinB 12
+
+int encodercount = 0;
+int newPosition = 0;
+
+void setup() {
+  Wire.begin(0x08);
+  Wire.onRequest(requestEvent);
+  pinMode(EncPinA, INPUT);
+  pinMode(EncPinB, INPUT);
+  digitalWrite(EncPinA, HIGH);
+  digitalWrite(EncPinB, HIGH);
+}
+
+void loop() {
+  int MSB = digitalRead(EncPinA);
+  int LSB = digitalRead(EncPinB);
+
+  int encoded = (MSB << 1) | LSB;
+  int sum = (newPosition << 2) | encoded;
+
+  if(sum == 0b1101 || sum == 0b0100 || sum == 0b0010 || sum == 0b1011) encodercount ++;
+  if(sum == 0b1110 || sum == 0b0111 || sum == 0b0001 || sum == 0b1000) encodercount --;
+
+  newPosition = encoded;
+}
+
+void requestEvent() {
+  Wire.write(encodercount);
+}
